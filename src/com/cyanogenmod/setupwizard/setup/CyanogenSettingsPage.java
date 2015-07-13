@@ -18,9 +18,7 @@ package com.cyanogenmod.setupwizard.setup;
 
 import android.app.Fragment;
 import android.app.FragmentManager;
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -28,17 +26,12 @@ import android.content.pm.ThemeUtils;
 import android.content.res.ThemeConfig;
 import android.content.res.ThemeManager;
 import android.hardware.CmHardwareManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.text.Spannable;
-import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
-import android.text.Spanned;
-import android.text.method.LinkMovementMethod;
-import android.text.style.ClickableSpan;
 import android.util.Log;
 import android.view.IWindowManager;
 import android.view.View;
@@ -49,7 +42,6 @@ import android.widget.TextView;
 
 import com.cyanogenmod.setupwizard.R;
 import com.cyanogenmod.setupwizard.SetupWizardApp;
-import com.cyanogenmod.setupwizard.cmstats.SetupStats;
 import com.cyanogenmod.setupwizard.ui.SetupPageFragment;
 import com.cyanogenmod.setupwizard.util.SetupWizardUtils;
 import com.cyanogenmod.setupwizard.util.WhisperPushUtils;
@@ -64,8 +56,6 @@ public class CyanogenSettingsPage extends SetupPage {
     public static final String KEY_REGISTER_WHISPERPUSH = "register";
     public static final String KEY_ENABLE_NAV_KEYS = "enable_nav_keys";
     public static final String KEY_APPLY_DEFAULT_THEME = "apply_default_theme";
-
-    public static final String PRIVACY_POLICY_URI = "https://cyngn.com/oobe-legal?hideHeader=1";
 
     private static final String WHISPERPUSH_PACKAGE = "org.whispersystems.whisperpush";
 
@@ -145,10 +135,6 @@ public class CyanogenSettingsPage extends SetupPage {
             @Override
             public void run() {
                 if (getData().containsKey(KEY_ENABLE_NAV_KEYS)) {
-                    SetupStats.addEvent(SetupStats.Categories.SETTING_CHANGED,
-                            SetupStats.Action.ENABLE_NAV_KEYS,
-                            SetupStats.Label.CHECKED,
-                            String.valueOf(getData().getBoolean(KEY_ENABLE_NAV_KEYS)));
                     writeDisableNavkeysOption(mContext, getData().getBoolean(KEY_ENABLE_NAV_KEYS));
                 }
             }
@@ -162,10 +148,6 @@ public class CyanogenSettingsPage extends SetupPage {
         if (privacyData != null &&
                 privacyData.containsKey(KEY_REGISTER_WHISPERPUSH) &&
                 privacyData.getBoolean(KEY_REGISTER_WHISPERPUSH)) {
-            SetupStats.addEvent(SetupStats.Categories.SETTING_CHANGED,
-                    SetupStats.Action.USE_SECURE_SMS,
-                    SetupStats.Label.CHECKED,
-                    String.valueOf(privacyData.getBoolean(KEY_REGISTER_WHISPERPUSH)));
             Log.i(TAG, "Registering with WhisperPush");
             WhisperPushUtils.startRegistration(mContext);
         }
@@ -175,14 +157,9 @@ public class CyanogenSettingsPage extends SetupPage {
         Bundle privacyData = getData();
         if (!ThemeUtils.getDefaultThemePackageName(mContext).equals(ThemeConfig.SYSTEM_DEFAULT) &&
                 privacyData != null && privacyData.getBoolean(KEY_APPLY_DEFAULT_THEME)) {
-            SetupStats.addEvent(SetupStats.Categories.SETTING_CHANGED,
-                    SetupStats.Action.APPLY_CUSTOM_THEME,
-                    SetupStats.Label.CHECKED,
-                    String.valueOf(privacyData.getBoolean(KEY_APPLY_DEFAULT_THEME)));
             Log.i(TAG, "Applying default theme");
             final ThemeManager tm = (ThemeManager) mContext.getSystemService(Context.THEME_SERVICE);
             tm.applyDefaultTheme();
-
         } else {
             getCallbacks().finishSetup();
         }
@@ -267,28 +244,6 @@ public class CyanogenSettingsPage extends SetupPage {
 
         @Override
         protected void initializePage() {
-            String privacy_policy = getString(R.string.services_privacy_policy);
-            String policySummary = getString(R.string.services_explanation, privacy_policy);
-            SpannableString ss = new SpannableString(policySummary);
-            ClickableSpan clickableSpan = new ClickableSpan() {
-                @Override
-                public void onClick(View textView) {
-                    final Intent intent = new Intent(SetupWizardApp.ACTION_VIEW_LEGAL);
-                    intent.setData(Uri.parse(PRIVACY_POLICY_URI));
-                    try {
-                        getActivity().startActivity(intent);
-                    } catch (Exception e) {
-                        Log.e(TAG, "Unable to start activity " + intent.toString(), e);
-                    }
-                }
-            };
-            ss.setSpan(clickableSpan,
-                    policySummary.length() - privacy_policy.length() - 1,
-                    policySummary.length() - 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            TextView privacyPolicy = (TextView) mRootView.findViewById(R.id.privacy_policy);
-            privacyPolicy.setMovementMethod(LinkMovementMethod.getInstance());
-            privacyPolicy.setText(ss);
-
             mKillSwitchView = mRootView.findViewById(R.id.killswitch);
             mKillSwitchTitle = (TextView)mRootView.findViewById(R.id.killswitch_title);
             mKillSwitchStatus = (ImageView)mRootView.findViewById(R.id.killswitch_check);
@@ -326,6 +281,7 @@ public class CyanogenSettingsPage extends SetupPage {
 
             mNavKeysRow = mRootView.findViewById(R.id.nav_keys);
             mNavKeysRow.setOnClickListener(mNavKeysClickListener);
+            mNavKeys = (CheckBox) mRootView.findViewById(R.id.nav_keys_checkbox);
             mHideNavKeysRow = hideKeyDisabler(getActivity());
             if (mHideNavKeysRow) {
                 mNavKeysRow.setVisibility(View.GONE);
