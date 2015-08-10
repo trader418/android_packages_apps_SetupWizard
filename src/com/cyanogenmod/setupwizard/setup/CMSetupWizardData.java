@@ -64,7 +64,7 @@ public class CMSetupWizardData extends AbstractSetupData {
                     .setHidden(!isSimInserted() || mMobileDataEnabled));
         }
         if (SetupWizardUtils.hasGMS(mContext)) {
-            pages.add(new GmsAccountPage(mContext, this));
+            pages.add(new GmsAccountPage(mContext, this).setHidden(true));
         }
         if (SetupWizardUtils.hasFingerprint(mContext) && SetupWizardUtils.isOwner()) {
             pages.add(new FingerprintSetupPage(mContext, this));
@@ -106,6 +106,12 @@ public class CMSetupWizardData extends AbstractSetupData {
 
     private void showHideAccountPages() {
         boolean isConnected = SetupWizardUtils.isNetworkConnected(mContext);
+
+        GmsAccountPage gmsAccountPage =
+                (GmsAccountPage) getPage(GmsAccountPage.TAG);
+        if (gmsAccountPage != null) {
+            gmsAccountPage.setHidden(!isConnected && gmsAccountPage.canSkip());
+        }
     }
 
     private void showHideSimMissingPage() {
