@@ -25,7 +25,6 @@ import android.content.pm.PackageManager;
 import android.content.pm.ThemeUtils;
 import android.content.res.ThemeConfig;
 import android.content.res.ThemeManager;
-import android.hardware.CmHardwareManager;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
@@ -48,6 +47,8 @@ import com.cyanogenmod.setupwizard.util.WhisperPushUtils;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
+
+import cyanogenmod.hardware.CMHardwareManager;
 
 public class CyanogenSettingsPage extends SetupPage {
 
@@ -93,9 +94,8 @@ public class CyanogenSettingsPage extends SetupPage {
 
         Settings.System.putInt(context.getContentResolver(),
                 Settings.System.NAVIGATION_BAR_SHOW, enabled ? 1 : 0);
-        final CmHardwareManager cmHardwareManager =
-                (CmHardwareManager) context.getSystemService(Context.CMHW_SERVICE);
-        cmHardwareManager.set(CmHardwareManager.FEATURE_KEY_DISABLE, enabled);
+        final CMHardwareManager hardware = CMHardwareManager.getInstance(context);
+        hardware.set(CMHardwareManager.FEATURE_KEY_DISABLE, enabled);
 
         /* Save/restore button timeouts to disable them in softkey mode */
         SharedPreferences.Editor editor = prefs.edit();
@@ -166,15 +166,13 @@ public class CyanogenSettingsPage extends SetupPage {
     }
 
     private static boolean hideKeyDisabler(Context ctx) {
-        final CmHardwareManager cmHardwareManager =
-                (CmHardwareManager) ctx.getSystemService(Context.CMHW_SERVICE);
-        return !cmHardwareManager.isSupported(CmHardwareManager.FEATURE_KEY_DISABLE);
+        final CMHardwareManager hardware = CMHardwareManager.getInstance(ctx);
+        return !hardware.isSupported(CMHardwareManager.FEATURE_KEY_DISABLE);
     }
 
     private static boolean isKeyDisablerActive(Context ctx) {
-        final CmHardwareManager cmHardwareManager =
-                (CmHardwareManager) ctx.getSystemService(Context.CMHW_SERVICE);
-        return cmHardwareManager.get(CmHardwareManager.FEATURE_KEY_DISABLE);
+        final CMHardwareManager hardware = CMHardwareManager.getInstance(ctx);
+        return hardware.get(CMHardwareManager.FEATURE_KEY_DISABLE);
     }
 
     private static boolean hideWhisperPush(Context context) {
