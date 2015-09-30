@@ -54,6 +54,8 @@ import com.cyanogenmod.setupwizard.ui.WebViewDialogFragment;
 import com.cyanogenmod.setupwizard.util.SetupWizardUtils;
 import com.cyanogenmod.setupwizard.util.WhisperPushUtils;
 
+import cyanogenmod.providers.CMSettings;
+
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 
@@ -119,13 +121,13 @@ public class CyanogenSettingsPage extends SetupPage {
             Settings.System.putInt(context.getContentResolver(),
                     Settings.System.ENABLE_HW_KEYS, 0);
 
-            int currentBrightness = Settings.Secure.getInt(context.getContentResolver(),
-                    Settings.Secure.BUTTON_BRIGHTNESS, defaultBrightness);
+            int currentBrightness = CMSettings.Secure.getInt(context.getContentResolver(),
+                    CMSettings.Secure.BUTTON_BRIGHTNESS, defaultBrightness);
             if (!prefs.contains("pre_navbar_button_backlight")) {
                 editor.putInt("pre_navbar_button_backlight", currentBrightness);
             }
-            Settings.Secure.putInt(context.getContentResolver(),
-                    Settings.Secure.BUTTON_BRIGHTNESS, 0);
+            CMSettings.Secure.putInt(context.getContentResolver(),
+                    CMSettings.Secure.BUTTON_BRIGHTNESS, 0);
         } else {
 
             /* If we choose navbar off then enable HW keys toggle */
@@ -134,8 +136,8 @@ public class CyanogenSettingsPage extends SetupPage {
 
             int oldBright = prefs.getInt("pre_navbar_button_backlight", -1);
             if (oldBright != -1) {
-                Settings.Secure.putInt(context.getContentResolver(),
-                        Settings.Secure.BUTTON_BRIGHTNESS, oldBright);
+                CMSettings.Secure.putInt(context.getContentResolver(),
+                        CMSettings.Secure.BUTTON_BRIGHTNESS, oldBright);
                 editor.remove("pre_navbar_button_backlight");
             }
         }
@@ -179,8 +181,9 @@ public class CyanogenSettingsPage extends SetupPage {
         Bundle privacyData = getData();
         if (privacyData != null
                 && privacyData.containsKey(KEY_SEND_METRICS)) {
-            Settings.Secure.putInt(mContext.getContentResolver(), Settings.Secure.STATS_COLLECTION,
-                    privacyData.getBoolean(KEY_SEND_METRICS) ? 1 : 0);
+            CMSettings.Secure.putInt(mContext.getContentResolver(),
+                    CMSettings.Secure.STATS_COLLECTION, privacyData.getBoolean(KEY_SEND_METRICS)
+                            ? 1 : 0);
         }
     }
 
