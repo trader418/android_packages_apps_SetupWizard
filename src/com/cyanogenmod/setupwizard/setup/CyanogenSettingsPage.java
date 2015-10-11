@@ -105,8 +105,8 @@ public class CyanogenSettingsPage extends SetupPage {
         final int defaultBrightness = context.getResources().getInteger(
                 com.android.internal.R.integer.config_buttonBrightnessSettingDefault);
 
-        Settings.Secure.putInt(context.getContentResolver(),
-                Settings.Secure.DEV_FORCE_SHOW_NAVBAR, enabled ? 1 : 0);
+        Settings.System.putInt(context.getContentResolver(),
+                Settings.System.NAVIGATION_BAR_SHOW, enabled ? 1 : 0);
         final CMHardwareManager hardware = CMHardwareManager.getInstance(context);
         hardware.set(CMHardwareManager.FEATURE_KEY_DISABLE, enabled);
 
@@ -114,6 +114,11 @@ public class CyanogenSettingsPage extends SetupPage {
         SharedPreferences.Editor editor = prefs.edit();
 
         if (enabled) {
+
+            /* If we choose navbar on then disable HW keys toggle */
+            Settings.System.putInt(context.getContentResolver(),
+                    Settings.System.ENABLE_HW_KEYS, 0);
+
             int currentBrightness = Settings.Secure.getInt(context.getContentResolver(),
                     Settings.Secure.BUTTON_BRIGHTNESS, defaultBrightness);
             if (!prefs.contains("pre_navbar_button_backlight")) {
@@ -122,6 +127,11 @@ public class CyanogenSettingsPage extends SetupPage {
             Settings.Secure.putInt(context.getContentResolver(),
                     Settings.Secure.BUTTON_BRIGHTNESS, 0);
         } else {
+
+            /* If we choose navbar off then enable HW keys toggle */
+            Settings.System.putInt(context.getContentResolver(),
+                    Settings.System.ENABLE_HW_KEYS, 1);
+
             int oldBright = prefs.getInt("pre_navbar_button_backlight", -1);
             if (oldBright != -1) {
                 Settings.Secure.putInt(context.getContentResolver(),
@@ -352,14 +362,8 @@ public class CyanogenSettingsPage extends SetupPage {
             mNavKeysRow = mRootView.findViewById(R.id.nav_keys);
             mNavKeysRow.setOnClickListener(mNavKeysClickListener);
             mNavKeys = (CheckBox) mRootView.findViewById(R.id.nav_keys_checkbox);
-            boolean needsNavBar = true;
-            try {
-                IWindowManager windowManager = WindowManagerGlobal.getWindowManagerService();
-                needsNavBar = windowManager.needsNavigationBar();
-            } catch (RemoteException e) {
-            }
             mHideNavKeysRow = hideKeyDisabler(getActivity());
-            if (mHideNavKeysRow || needsNavBar) {
+            if (mHideNavKeysRow) {
                 mNavKeysRow.setVisibility(View.GONE);
             } else {
                 boolean navKeysDisabled =
@@ -437,8 +441,8 @@ public class CyanogenSettingsPage extends SetupPage {
         private void updateDisableNavkeysOption() {
             if (!mHideNavKeysRow) {
                 final Bundle myPageBundle = mPage.getData();
-                boolean enabled = Settings.Secure.getInt(getActivity().getContentResolver(),
-                        Settings.Secure.DEV_FORCE_SHOW_NAVBAR, 0) != 0;
+                boolean enabled = Settings.System.getInt(getActivity().getContentResolver(),
+                        Settings.System.NAVIGATION_BAR_SHOW, 0) != 0;
                 boolean checked = myPageBundle.containsKey(KEY_ENABLE_NAV_KEYS) ?
                         myPageBundle.getBoolean(KEY_ENABLE_NAV_KEYS) :
                         enabled;
